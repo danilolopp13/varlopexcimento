@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Varlopex</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+:root{
+  --font-sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --tp:#1a1a1a;--ts:#6b6b6b;--tt:#9b9b9b;--bt:#e3e3e0;--bs:#cfcfcc;
+  --verde:#1D9E75;--verdeE:#147a59;--ouro:#E8B600;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:var(--font-sans);background:#f5f5f3;min-height:100vh;color:var(--tp)}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.app{max-width:420px;margin:0 auto;background:#f5f5f3;min-height:100vh}
+.screen{display:none;flex-direction:column;min-height:100vh}
+.screen.active{display:flex}
+.topbar{background:#fff;border-bottom:0.5px solid var(--bt);padding:14px 16px;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10}
+.topbar-title{font-size:16px;font-weight:500;color:var(--tp);flex:1}
+.topbar-sub{font-size:12px;color:var(--ts)}
+.content{padding:16px;flex:1}
+.btn{width:100%;padding:14px;border-radius:10px;font-size:16px;font-weight:500;cursor:pointer;border:none}
+.btn-verde{background:var(--verde);color:#fff}
+.btn-cinza{background:#fff;color:var(--tp);border:0.5px solid var(--bt)}
+.btn:active{opacity:.8}
+.card{background:#fff;border:0.5px solid var(--bt);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.campo{margin-bottom:16px}
+.campo label{display:block;font-size:14px;font-weight:500;color:var(--tp);margin-bottom:6px}
+.campo .dica{font-size:12px;color:var(--ts);margin-bottom:6px}
+.campo input,.campo select,.campo textarea{width:100%;padding:11px 12px;border:0.5px solid var(--bt);border-radius:8px;font-size:15px;background:#fff;color:var(--tp)}
+.campo textarea{resize:none;height:72px}
+.back-btn{background:none;border:none;cursor:pointer;color:var(--ts);font-size:20px;padding:0;display:flex;align-items:center}
+.nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:420px;background:#fff;border-top:0.5px solid var(--bt);display:flex;padding:8px 0 20px;z-index:20}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;padding:4px 0}
+.nav-btn i{font-size:22px;color:#aaa}
+.nav-btn span{font-size:10px;color:#aaa}
+.nav-btn.on i,.nav-btn.on span{color:var(--verde)}
+.alert-ok{background:#EAF3DE;color:#3B6D11;border:0.5px solid #C0DD97;border-radius:8px;padding:10px 14px;font-size:14px;margin-bottom:12px}
+.alert-info{background:#E6F1FB;color:#185FA5;border:0.5px solid #B5D4F4;border-radius:8px;padding:10px 14px;font-size:14px;margin-bottom:12px}
+.check-item{display:flex;align-items:center;gap:12px;padding:12px 0;border-bottom:0.5px solid var(--bt);cursor:pointer}
+.check-item:last-child{border-bottom:none}
+.check-box{width:24px;height:24px;border-radius:6px;border:1.5px solid #ccc;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s}
+.check-box.ok{background:var(--verde);border-color:var(--verde)}
+.check-box.ok::after{content:'✓';color:#fff;font-size:14px;font-weight:500}
+.check-label{font-size:15px;color:var(--tp)}
+.entrega-card{background:#f9f9f7;border:0.5px solid var(--bt);border-radius:8px;padding:12px;margin-bottom:10px}
+.enum{width:28px;height:28px;background:var(--verde);border-radius:50%;color:#fff;font-size:14px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.enum.done{background:#3B6D11}.enum.pend{background:#BA7517}.enum.dev{background:#A32D2D}
+.premio-card{background:#EAF3DE;border:0.5px solid #C0DD97;border-radius:12px;padding:14px 16px;margin-bottom:12px;display:flex;align-items:center;gap:12px}
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.stat{background:#fff;border-radius:8px;border:0.5px solid var(--bt);padding:12px}
+.stat-n{font-size:26px;font-weight:500;color:var(--tp)}
+.stat-l{font-size:12px;color:var(--ts);margin-bottom:4px}
+.hist-row{display:flex;align-items:flex-start;gap:10px;padding:12px 0;border-bottom:0.5px solid var(--bt)}
+.badge{display:inline-flex;align-items:center;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:500}
+.badge-ok{background:#EAF3DE;color:#3B6D11}.badge-pend{background:#FAEEDA;color:#854F0B}.badge-dev{background:#FCEBEB;color:#A32D2D}
+.badge-pago{background:#E6F1FB;color:#185FA5}
+.photo-area{border:1.5px dashed #ccc;border-radius:10px;padding:18px 16px;text-align:center;cursor:pointer;background:#fff;margin-bottom:8px}
+.photo-area i{font-size:24px;color:#aaa;display:block;margin-bottom:6px}
+.photo-area span{font-size:13px;color:#aaa}
+.photo-row{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.photo-thumb{width:64px;height:64px;border-radius:8px;object-fit:cover;border:0.5px solid var(--bt)}
+.ent-block{background:#fff;border:0.5px solid var(--bt);border-radius:12px;padding:14px 16px;margin-bottom:12px}
+.ent-block.entregue{background:#f4f8ef;border-color:#C0DD97}
+.ent-block.devolvido{background:#fcf1f1;border-color:#eecaca}
+.ent-head{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+.ent-cidade{font-size:15px;font-weight:500;color:var(--tp);flex:1}
+.mini-label{font-size:13px;font-weight:500;color:var(--tp);margin-bottom:5px;display:block}
+.mini-in{width:100%;padding:10px 12px;border:0.5px solid var(--bt);border-radius:8px;font-size:14px;background:#fff;color:var(--tp);margin-bottom:10px}
+.mes-title{font-size:13px;font-weight:600;color:var(--ts);text-transform:uppercase;letter-spacing:.04em;margin:18px 0 10px}
+.col-row{background:#fff;border:0.5px solid var(--bt);border-radius:10px;padding:12px 14px;margin-bottom:8px;cursor:pointer;display:flex;align-items:center;justify-content:space-between}
+.col-row:active{opacity:.8}
+.action-card{background:#fff;border:0.5px solid var(--bt);border-radius:14px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:opacity .15s}
+.action-card:active{opacity:.7}
+.action-ico{width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+.action-title{font-size:15px;font-weight:600;color:var(--tp)}
+.action-sub{font-size:12px;color:var(--ts);margin-top:2px}
+.nav-plus{position:relative;top:-14px}
+.plus-btn{width:52px;height:52px;background:var(--verde);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px rgba(29,158,117,.35)}
+.dia-row{background:#fff;border-radius:8px;border:0.5px solid var(--bt);padding:12px 14px;margin-bottom:8px;display:flex;align-items:center;justify-content:space-between}
+
+/* ===== LOADING OVERLAY ===== */
+#loading{position:fixed;inset:0;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:999;gap:16px}
+#loading.hide{display:none}
+.spinner{width:36px;height:36px;border:3px solid var(--bt);border-top-color:var(--verde);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{font-size:14px;color:var(--ts)}
+
+/* ===== ADM DESKTOP ===== */
+#adm{display:none;min-height:100vh;background:#eef0ee}
+#adm.active{display:block}
+.adm-header{background:linear-gradient(100deg,#147a59,#1D9E75);color:#fff;padding:18px 32px;display:flex;align-items:center;gap:16px;box-shadow:0 1px 8px rgba(0,0,0,.08)}
+.adm-logo{width:42px;height:42px;background:rgba(255,255,255,.18);border-radius:10px;display:flex;align-items:center;justify-content:center}
+.adm-htitle{font-size:19px;font-weight:600}
+.adm-hsub{font-size:13px;opacity:.85}
+.adm-logout{margin-left:auto;background:rgba(255,255,255,.15);border:none;color:#fff;padding:9px 16px;border-radius:8px;cursor:pointer;font-size:14px;display:flex;align-items:center;gap:6px}
+.adm-logout:hover{background:rgba(255,255,255,.25)}
+.adm-wrap{max-width:1180px;margin:0 auto;padding:28px 32px 60px}
+.adm-section-t{font-size:15px;font-weight:600;color:var(--tp);margin:30px 0 14px;display:flex;align-items:center;gap:8px}
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+.kpi{background:#fff;border-radius:14px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.kpi-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+.kpi-n{font-size:28px;font-weight:700;color:var(--tp);line-height:1}
+.kpi-l{font-size:13px;color:var(--ts);margin-top:6px}
+.rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.rcard{background:#fff;border-radius:16px;padding:22px;box-shadow:0 1px 4px rgba(0,0,0,.05);position:relative;overflow:hidden}
+.rcard.gold{border:2px solid var(--ouro)}
+.rcard-crown{position:absolute;top:16px;right:18px;font-size:24px}
+.rcard-top{display:flex;align-items:center;gap:14px;margin-bottom:18px}
+.ravatar{width:54px;height:54px;border-radius:50%;background:var(--verde);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:600}
+.rname{font-size:18px;font-weight:600;color:var(--tp)}
+.rplate{font-size:13px;color:var(--ts)}
+.rlevel{display:inline-flex;align-items:center;gap:5px;background:#FBF3D6;color:#8a6d00;font-size:12px;font-weight:600;padding:3px 10px;border-radius:20px;margin-top:5px}
+.xp-bar{height:8px;background:#eee;border-radius:6px;overflow:hidden;margin:6px 0 4px}
+.xp-fill{height:100%;background:linear-gradient(90deg,var(--verde),#46c79a);border-radius:6px}
+.xp-txt{font-size:11px;color:var(--tt)}
+.rmetrics{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0}
+.rmetric{background:#f7f7f5;border-radius:10px;padding:11px 8px;text-align:center}
+.rmetric-n{font-size:20px;font-weight:700;color:var(--tp)}
+.rmetric-l{font-size:11px;color:var(--ts);margin-top:3px}
+.badges{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;min-height:4px}
+.bdg{font-size:11px;font-weight:600;padding:4px 9px;border-radius:20px;background:#EAF3DE;color:#3B6D11}
+.pay-box{background:#f7f7f5;border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.pay-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.pay-total{font-size:13px;color:var(--ts)}
+.pay-total b{color:#A32D2D;font-size:15px}
+.pay-row{display:flex;align-items:center;justify-content:space-between;padding:9px 0;border-bottom:0.5px solid var(--bt);font-size:13px}
+.pay-row:last-child{border-bottom:none}
+.btn-pagar{background:var(--verde);color:#fff;border:none;border-radius:7px;padding:7px 14px;font-size:13px;font-weight:600;cursor:pointer}
+.btn-pagar:hover{background:#178a66}
+.btn-pago{background:#E6F1FB;color:#185FA5;border:none;border-radius:7px;padding:7px 14px;font-size:13px;font-weight:600;cursor:default;display:inline-flex;align-items:center;gap:5px}
+.charts-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+.chart-card{background:#fff;border-radius:14px;padding:18px 20px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.chart-card h4{font-size:14px;font-weight:600;color:var(--tp);margin-bottom:14px}
+.chart-wrap{position:relative;height:200px}
+.tbl{width:100%;background:#fff;border-radius:14px;box-shadow:0 1px 4px rgba(0,0,0,.05);overflow:hidden;border-collapse:collapse}
+.tbl th{text-align:left;font-size:12px;color:var(--ts);font-weight:600;padding:13px 18px;background:#fafafa;border-bottom:1px solid var(--bt);text-transform:uppercase;letter-spacing:.03em}
+.tbl td{padding:13px 18px;font-size:14px;color:var(--tp);border-bottom:0.5px solid var(--bt)}
+.tbl tr:last-child td{border-bottom:none}
+.empty-d{text-align:center;color:var(--ts);font-size:14px;padding:40px 20px;background:#fff;border-radius:14px}
+.sync-badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 8px;border-radius:20px;background:#EAF3DE;color:#3B6D11;margin-left:8px}
+.sync-badge.off{background:#FAEEDA;color:#854F0B}
+@media(max-width:1100px){.kpi-grid{grid-template-columns:repeat(2,1fr)}.rank-grid,.charts-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading"><div class="spinner"></div><p>Conectando...</p></div>
+
+<h2 class="sr-only">App Varlopex</h2>
+
+<!-- ============ APP MOBILE ============ -->
+<div class="app" id="mob">
+
+<!-- LOGIN -->
+<div class="screen active" id="s-login" style="justify-content:center;padding:40px 20px">
+  <div style="text-align:center;margin-bottom:40px">
+    <div style="width:64px;height:64px;background:var(--verde);border-radius:16px;margin:0 auto 16px;display:flex;align-items:center;justify-content:center">
+      <i class="ti ti-truck" style="font-size:30px;color:#fff"></i>
+    </div>
+    <div style="font-size:22px;font-weight:500;color:var(--tp)">Varlopex</div>
+    <div style="font-size:14px;color:var(--ts);margin-top:4px">Acesso ao sistema</div>
+  </div>
+  <div class="campo"><label>Seu nome de acesso</label><input type="text" id="lu" placeholder="Ex: gabriel" autocomplete="off"></div>
+  <div class="campo"><label>Senha</label><input type="password" id="lp" placeholder="Sua senha"></div>
+  <div id="lerr" style="color:#A32D2D;font-size:14px;margin-bottom:12px;display:none">Nome ou senha errados. Tenta de novo.</div>
+  <button class="btn btn-verde" onclick="doLogin()">Entrar</button>
+</div>
+
+<!-- HOME -->
+<div class="screen" id="s-home">
+  <div class="topbar">
+    <div style="width:36px;height:36px;background:var(--verde);border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-weight:500;font-size:14px" id="av"></div>
+    <div style="flex:1"><div class="topbar-title" id="h-nome"></div><div class="topbar-sub" id="h-placa"></div></div>
+    <span id="sync-status" class="sync-badge"><i class="ti ti-wifi" style="font-size:11px"></i> Online</span>
+    <button onclick="logout()" style="background:none;border:none;cursor:pointer;margin-left:8px"><i class="ti ti-logout" style="font-size:20px;color:#aaa"></i></button>
+  </div>
+  <div class="content" style="padding-bottom:100px">
+    <div id="h-premio" style="display:none" class="premio-card">
+      <i class="ti ti-trophy" style="font-size:28px;color:#3B6D11"></i>
+      <div><div style="font-size:15px;font-weight:500;color:#3B6D11">Prêmio do dia garantido!</div>
+      <div style="font-size:13px;color:#3B6D11">Você fez 2 ou mais coletas hoje. R$80,00 ✓</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:14px">
+      <i class="ti ti-building-factory-2" style="font-size:15px;color:var(--verde)"></i>
+      <span style="font-size:13px;font-weight:700;color:var(--verde);letter-spacing:.04em">CIMENTO · FERCAL</span>
+    </div>
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-l">Coletas hoje</div><div class="stat-n" id="h-cn">0</div></div>
+      <div class="stat"><div class="stat-l">Coletas no mês</div><div class="stat-n" id="h-cm">0</div></div>
+    </div>
+    <div class="action-card" onclick="go('s-coleta')">
+      <div class="action-ico" style="background:#FFF3E0">📦</div>
+      <div><div class="action-title">Registrar coleta</div><div class="action-sub">Sair da fábrica com carga</div></div>
+      <i class="ti ti-chevron-right" style="color:#ccc;margin-left:auto"></i>
+    </div>
+    <div class="action-card" onclick="go('s-entrega')">
+      <div class="action-ico" style="background:#E8F5E9">✔️</div>
+      <div><div class="action-title">Confirmar entrega</div><div class="action-sub">Registrar canhoto e entrega</div></div>
+      <i class="ti ti-chevron-right" style="color:#ccc;margin-left:auto"></i>
+    </div>
+    <div class="action-card" onclick="go('s-abast')">
+      <div class="action-ico" style="background:#FFF8E1">⛽</div>
+      <div><div class="action-title">Abastecer</div><div class="action-sub">Registrar combustível</div></div>
+      <i class="ti ti-chevron-right" style="color:#ccc;margin-left:auto"></i>
+    </div>
+    <div class="action-card" onclick="go('s-todas-coletas')">
+      <div class="action-ico" style="background:#EDE7F6">🏁</div>
+      <div><div class="action-title">Todas as coletas</div><div class="action-sub">Histórico e status das viagens</div></div>
+      <i class="ti ti-chevron-right" style="color:#ccc;margin-left:auto"></i>
+    </div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn on" onclick="go('s-home')"><i class="ti ti-home"></i><span>Início</span></button>
+    <button class="nav-btn nav-plus" onclick="go('s-coleta')"><div class="plus-btn"><i class="ti ti-plus" style="font-size:22px;color:#fff"></i></div></button>
+    <button class="nav-btn" onclick="go('s-saldo')"><i class="ti ti-coin"></i><span>Meu saldo</span></button>
+  </div>
+</div>
+
+<!-- COLETA -->
+<div class="screen" id="s-coleta">
+  <div class="topbar">
+    <button class="back-btn" onclick="go('s-home')"><i class="ti ti-arrow-left"></i></button>
+    <div><div class="topbar-title">Registrar coleta</div><div class="topbar-sub">Operação Cimento · Fercal</div></div>
+  </div>
+  <div class="content" style="padding-bottom:30px">
+    <div class="card"><div style="font-size:13px;color:var(--ts);margin-bottom:4px">Saída de</div>
+    <div style="font-size:16px;font-weight:500;color:var(--tp)">Votorantim — Fábrica Fercal</div></div>
+    <div class="campo">
+      <label>Quantas entregas você vai fazer?</label>
+      <div class="dica">Conta quantos clientes você vai entregar nessa saída.</div>
+      <div style="display:flex;align-items:center;gap:16px">
+        <button onclick="chgQ(-1)" style="width:44px;height:44px;border-radius:8px;border:0.5px solid var(--bt);background:#fff;font-size:22px;cursor:pointer;color:var(--tp)">−</button>
+        <div style="font-size:28px;font-weight:500;min-width:30px;text-align:center" id="qn">1</div>
+        <button onclick="chgQ(1)" style="width:44px;height:44px;border-radius:8px;border:0.5px solid var(--bt);background:#fff;font-size:22px;cursor:pointer;color:var(--tp)">+</button>
+      </div>
+    </div>
+    <div style="font-size:14px;font-weight:500;color:var(--tp);margin-bottom:10px">Cada entrega tem sua cidade e sua nota:</div>
+    <div id="e-list" style="margin-bottom:16px"></div>
+    <div class="campo"><label>Valor do frete (R$)</label><div class="dica">Valor total que a empresa vai receber por essa coleta.</div><input type="number" id="c-valor" placeholder="Ex: 850"></div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:15px;font-weight:500;color:var(--tp);margin-bottom:12px">Antes de sair, confirme:</div>
+      <div class="card" style="padding:8px 14px">
+        <div class="check-item" onclick="tog(this)"><div class="check-box"></div><div class="check-label">Pneus ok</div></div>
+        <div class="check-item" onclick="tog(this)"><div class="check-box"></div><div class="check-label">Freios ok</div></div>
+        <div class="check-item" onclick="tog(this)"><div class="check-box"></div><div class="check-label">Carga amarrada</div></div>
+        <div class="check-item" onclick="tog(this)"><div class="check-box"></div><div class="check-label">Documentos em mãos</div></div>
+      </div>
+    </div>
+    <div class="campo"><label>Alguma observação?</label><div class="dica">Opcional.</div><textarea id="c-obs" placeholder="Escreve aqui se quiser..."></textarea></div>
+    <button class="btn btn-verde" onclick="salvarColeta()">Confirmar saída da fábrica</button>
+    <div id="c-ok" style="display:none;margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- ENTREGA -->
+<div class="screen" id="s-entrega">
+  <div class="topbar">
+    <button class="back-btn" onclick="go('s-home')"><i class="ti ti-arrow-left"></i></button>
+    <div><div class="topbar-title">Confirmar entrega</div><div class="topbar-sub">Uma entrega por vez · com canhoto</div></div>
+  </div>
+  <div class="content" style="padding-bottom:30px">
+    <div id="en-resumo"></div><div id="en-blocos"></div>
+    <div id="en-ok" style="display:none;margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- ABASTECIMENTO -->
+<div class="screen" id="s-abast">
+  <div class="topbar">
+    <button class="back-btn" onclick="go('s-home')"><i class="ti ti-arrow-left"></i></button>
+    <div><div class="topbar-title">Abastecer</div><div class="topbar-sub">Registra o diesel</div></div>
+  </div>
+  <div class="content" style="padding-bottom:30px">
+    <div class="campo"><label>Quantos litros você colocou?</label><input type="number" id="ab-l" placeholder="Ex: 120" oninput="calcAb()"></div>
+    <div class="campo"><label>Preço do litro</label><div class="dica">Tá escrito na bomba.</div><input type="number" id="ab-p" placeholder="Ex: 6,89" step="0.01" oninput="calcAb()"></div>
+    <div class="campo"><label>Nome do posto</label><input type="text" id="ab-posto" placeholder="Ex: Posto Shell — Taguatinga"></div>
+    <div class="card"><div style="font-size:13px;color:var(--ts);margin-bottom:4px">Total a pagar</div><div style="font-size:26px;font-weight:500;color:var(--verde)" id="ab-tot">R$ —</div></div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:14px;font-weight:500;color:var(--tp);margin-bottom:8px">Foto da bomba</div>
+      <div class="photo-area" onclick="addFoto('ab-fotos-row')"><i class="ti ti-gas-station"></i><span>Foto da bomba mostrando litros e valor</span></div>
+      <div class="photo-row" id="ab-fotos-row"></div>
+    </div>
+    <button class="btn btn-verde" onclick="salvarAbast()">Salvar abastecimento</button>
+    <div id="ab-ok" style="display:none;margin-top:12px"></div>
+  </div>
+</div>
+
+<!-- TODAS AS COLETAS -->
+<div class="screen" id="s-todas-coletas">
+  <div class="topbar">
+    <button class="back-btn" onclick="go('s-home')"><i class="ti ti-arrow-left"></i></button>
+    <div><div class="topbar-title">Todas as coletas</div><div class="topbar-sub" id="tc-sub">Histórico de viagens</div></div>
+  </div>
+  <div class="content" style="padding-bottom:30px"><div id="tc-lista"></div></div>
+</div>
+
+<!-- COLETA DETALHE -->
+<div class="screen" id="s-coleta-det">
+  <div class="topbar">
+    <button class="back-btn" onclick="go('s-todas-coletas')"><i class="ti ti-arrow-left"></i></button>
+    <div><div class="topbar-title">Detalhe da coleta</div><div class="topbar-sub" id="cd-sub"></div></div>
+  </div>
+  <div class="content" style="padding-bottom:30px"><div id="cd-conteudo"></div></div>
+</div>
+
+<!-- SALDO -->
+<div class="screen" id="s-saldo">
+  <div class="topbar">
+    <button class="back-btn" onclick="go('s-home')"><i class="ti ti-arrow-left"></i></button>
+    <div><div class="topbar-title">Meu saldo</div><div class="topbar-sub">Prêmios e coletas do mês</div></div>
+  </div>
+  <div class="content" style="padding-bottom:100px">
+    <div class="stat-grid">
+      <div class="stat"><div class="stat-l">Coletas no mês</div><div class="stat-n" id="sl-col">0</div></div>
+      <div class="stat"><div class="stat-l">Prêmios ganhos</div><div class="stat-n" id="sl-pr">0</div></div>
+    </div>
+    <div class="card"><div style="font-size:13px;color:var(--ts);margin-bottom:4px">Total de prêmios</div>
+    <div style="font-size:28px;font-weight:500;color:var(--verde)" id="sl-tot">R$ 0,00</div>
+    <div style="font-size:12px;color:var(--ts);margin-top:4px">Cada dia com 2+ coletas = R$80,00</div></div>
+    <div style="font-size:14px;font-weight:500;color:var(--tp);margin-bottom:10px">Dias com prêmio</div>
+    <div id="sl-dias"></div>
+  </div>
+  <div class="nav">
+    <button class="nav-btn" onclick="go('s-home')"><i class="ti ti-home"></i><span>Início</span></button>
+    <button class="nav-btn nav-plus" onclick="go('s-coleta')"><div class="plus-btn"><i class="ti ti-plus" style="font-size:22px;color:#fff"></i></div></button>
+    <button class="nav-btn on" onclick="go('s-saldo')"><i class="ti ti-coin"></i><span>Meu saldo</span></button>
+  </div>
+</div>
+
+</div><!-- /mob -->
+
+<!-- ============ DASHBOARD ADM ============ -->
+<div id="adm">
+  <div class="adm-header">
+    <div class="adm-logo"><i class="ti ti-truck" style="font-size:24px"></i></div>
+    <div>
+      <div class="adm-htitle">Painel de Gestão — Varlopex</div>
+      <div class="adm-hsub" id="adm-data">Operação Cimento · Fercal</div>
+    </div>
+    <span id="adm-sync" class="sync-badge" style="margin-left:auto;margin-right:12px"><i class="ti ti-wifi" style="font-size:11px"></i> Online</span>
+    <button class="adm-logout" onclick="logout()"><i class="ti ti-logout"></i> Sair</button>
+  </div>
+  <div class="adm-wrap">
+    <div class="adm-section-t"><i class="ti ti-chart-bar" style="color:var(--verde)"></i> Visão geral do mês</div>
+    <div class="kpi-grid" id="kpis"></div>
+    <div class="adm-section-t"><i class="ti ti-medal" style="color:var(--ouro)"></i> Ranking dos motoristas</div>
+    <div class="rank-grid" id="rank"></div>
+    <div class="adm-section-t"><i class="ti ti-cash" style="color:var(--verde)"></i> Pagamento de prêmios</div>
+    <div id="pagamentos"></div>
+    <div class="adm-section-t"><i class="ti ti-chart-pie" style="color:var(--verde)"></i> Indicadores</div>
+    <div class="charts-grid">
+      <div class="chart-card"><h4>Coletas por motorista</h4><div class="chart-wrap"><canvas id="ch-coletas"></canvas></div></div>
+      <div class="chart-card"><h4>Entregas por motorista</h4><div class="chart-wrap"><canvas id="ch-entregas"></canvas></div></div>
+      <div class="chart-card"><h4>Situação das entregas</h4><div class="chart-wrap"><canvas id="ch-situacao"></canvas></div></div>
+    </div>
+    <div class="adm-section-t"><i class="ti ti-history" style="color:var(--verde)"></i> Últimas coletas</div>
+    <div id="adm-tabela"></div>
+  </div>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getDatabase, ref, push, set, onValue, update } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAAYAaQwzLW0Jv-Gr7kw7MqsayABUvjJV0",
+  authDomain: "varlopex.firebaseapp.com",
+  databaseURL: "https://varlopex-default-rtdb.firebaseio.com",
+  projectId: "varlopex",
+  storageBucket: "varlopex.firebasestorage.app",
+  messagingSenderId: "295994461005",
+  appId: "1:295994461005:web:1eeef88c4e26c89496c504",
+  measurementId: "G-R3J0CH9J3G"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ===== CONFIG =====
+const USERS = {
+  gabriel: {s:'gabriel10', r:'mot', n:'Gabriel', p:'MZQ1A08'},
+  bh:      {s:'bh10',      r:'mot', n:'BH',      p:'EJV5A11'},
+  adm:     {s:'adm10',     r:'adm', n:'Gestão'}
+};
+const MOTORISTAS = ['gabriel','bh'];
+const PP = ['SOF Sul','SOF Norte','Asa Sul','Asa Norte','Paranoá','SIA','Noroeste','Sudoeste'];
+const DF = ['Águas Claras','Arniqueira','Brazlândia','Candangolândia','Ceilândia','Cidade Estrutural','Cruzeiro','Fercal','Gama','Guará','Itapoã','Jardim Botânico','Lago Norte','Lago Sul','Núcleo Bandeirante','Planaltina','Recanto das Emas','Riacho Fundo I','Riacho Fundo II','Samambaia','Santa Maria','São Sebastião','Sobradinho I','Sobradinho II','Taguatinga','Varjão','Vicente Pires','Água Quente','Arapoanga'];
+const GO = ['Águas Lindas de Goiás (GO)','Cidade Ocidental (GO)','Formosa (GO)','Luziânia (GO)','Novo Gama (GO)','Santo Antônio do Descoberto (GO)','Valparaíso de Goiás (GO)','Planaltina (GO)','Alexânia (GO)','Padre Bernardo (GO)'];
+const MESES = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro'];
+const PREMIO = 80;
+
+// ===== STATE =====
+let me = null, qtd = 1, coletas = [], abasts = [], premiosPagos = {}, viagemAtiva = null;
+let charts = {};
+
+// ===== HELPERS =====
+function hoje(){return new Date().toLocaleDateString('pt-BR',{timeZone:'America/Sao_Paulo'});}
+function hora(){return new Date().toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',timeZone:'America/Sao_Paulo'});}
+function mesAno(d){const[x,m,a]=d.split('/');return MESES[parseInt(m)-1]+' '+a;}
+function chaveMes(d){const[x,m,a]=d.split('/');return a+'-'+m;}
+function mesAtual(){const n=new Date();return String(n.getFullYear())+'-'+String(n.getMonth()+1).padStart(2,'0');}
+
+// ===== FIREBASE LISTENERS =====
+function iniciarListeners(){
+  onValue(ref(db,'coletas'), snap=>{
+    coletas=[];
+    snap.forEach(c=>{coletas.push({fbKey:c.key,...c.val()});});
+    coletas.sort((a,b)=>b.id-a.id);
+    if(me && USERS[me].r==='adm') renderAdm();
+    else if(me) refreshHome();
+  });
+  onValue(ref(db,'abasts'), snap=>{
+    abasts=[];
+    snap.forEach(c=>{abasts.push({fbKey:c.key,...c.val()});});
+  });
+  onValue(ref(db,'premiosPagos'), snap=>{
+    premiosPagos={};
+    snap.forEach(c=>{premiosPagos[c.key.replace('|','|')]=c.val();});
+    if(me && USERS[me].r==='adm') renderAdm();
+  });
+  // Status online
+  onValue(ref(db,'.info/connected'), snap=>{
+    const online=snap.val();
+    ['sync-status','adm-sync'].forEach(id=>{
+      const el=document.getElementById(id);
+      if(!el)return;
+      el.className='sync-badge'+(online?'':' off');
+      el.innerHTML=online?'<i class="ti ti-wifi" style="font-size:11px"></i> Online':'<i class="ti ti-wifi-off" style="font-size:11px"></i> Offline';
+    });
+  });
+  document.getElementById('loading').classList.add('hide');
+}
+
+// ===== AUTH =====
+function doLogin(){
+  const u=document.getElementById('lu').value.trim().toLowerCase();
+  const p=document.getElementById('lp').value.trim().toLowerCase();
+  if(USERS[u]&&USERS[u].s===p){
+    document.getElementById('lerr').style.display='none';
+    me=u;
+    if(USERS[u].r==='adm') entrarAdm(); else entrarMot();
+  } else document.getElementById('lerr').style.display='block';
+}
+function logout(){
+  me=null;
+  document.getElementById('adm').classList.remove('active');
+  document.getElementById('mob').style.display='block';
+  document.getElementById('lu').value='';document.getElementById('lp').value='';
+  go('s-login');
+}
+function entrarMot(){
+  const U=USERS[me];
+  document.getElementById('av').textContent=U.n.slice(0,2).toUpperCase();
+  document.getElementById('h-nome').textContent=U.n;
+  document.getElementById('h-placa').textContent='Caminhão: '+U.p;
+  go('s-home');refreshHome();
+}
+function entrarAdm(){
+  document.getElementById('mob').style.display='none';
+  document.getElementById('adm').classList.add('active');
+  document.getElementById('adm-data').textContent='Operação Cimento · '+mesAno(hoje());
+  renderAdm();
+}
+
+// ===== NAVEGAÇÃO =====
+function go(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+  if(id==='s-coleta') renderEntregas();
+  if(id==='s-entrega') abrirEntrega();
+  if(id==='s-saldo') refreshSaldo();
+  if(id==='s-todas-coletas') renderTodasColetas();
+}
+
+// ===== HOME =====
+function refreshHome(){
+  const hj=hoje();
+  const mine=coletas.filter(c=>c.u===me);
+  document.getElementById('h-cn').textContent=mine.filter(c=>c.data===hj).length;
+  document.getElementById('h-cm').textContent=mine.length;
+  document.getElementById('h-premio').style.display=mine.filter(c=>c.data===hj).length>=2?'flex':'none';
+}
+
+// ===== COLETA =====
+function chgQ(d){const n=qtd+d;if(n<1||n>6)return;qtd=n;document.getElementById('qn').textContent=qtd;renderEntregas();}
+function renderEntregas(){
+  let opts='<option value="">Escolhe a cidade...</option><optgroup label="Brasília — Plano Piloto">';
+  PP.forEach(c=>opts+=`<option>${c}</option>`);
+  opts+='</optgroup><optgroup label="Cidades Satélites — DF">';
+  DF.forEach(c=>opts+=`<option>${c}</option>`);
+  opts+='</optgroup><optgroup label="Entorno do DF — Goiás">';
+  GO.forEach(c=>opts+=`<option>${c}</option>`);
+  opts+='</optgroup>';
+  let html='';
+  for(let i=1;i<=qtd;i++){
+    html+=`<div class="entrega-card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><div class="enum">${i}</div><div style="font-size:14px;font-weight:500;color:var(--tp)">Entrega ${i}</div></div>
+      <span class="mini-label">Cidade</span><select class="sel-dest mini-in">${opts}</select>
+      <span class="mini-label">Número da nota fiscal</span><input class="sel-nf mini-in" inputmode="numeric" placeholder="NF desta entrega · ex: 000123" style="margin-bottom:0"></div>`;
+  }
+  document.getElementById('e-list').innerHTML=html;
+}
+function tog(el){el.querySelector('.check-box').classList.toggle('ok');}
+
+async function salvarColeta(){
+  const dests=[...document.querySelectorAll('.sel-dest')].map(s=>s.value);
+  const nfs=[...document.querySelectorAll('.sel-nf')].map(s=>s.value.trim());
+  if(dests.some(d=>!d)){alert('Escolhe a cidade de cada entrega.');return;}
+  if(nfs.some(n=>!n)){alert('Digita o número da nota de cada entrega.');return;}
+  const val=document.getElementById('c-valor').value;
+  if(!val){alert('Coloca o valor do frete.');return;}
+  const entregas=dests.map((d,i)=>({n:i+1,cidade:d,nf:nfs[i],status:'pendente',recebedor:'',canhoto:'',motivo:'',hora:'',foto:null}));
+  const reg={id:Date.now(),u:me,data:hoje(),hora:hora(),qtd,valor:val,obs:document.getElementById('c-obs').value,entregas};
+  try{
+    const nr=push(ref(db,'coletas'));
+    await set(nr,reg);
+    viagemAtiva={fbKey:nr.key,...reg};
+  }catch(e){alert('Erro ao salvar. Verifique sua conexão.');}
+  document.getElementById('c-valor').value='';document.getElementById('c-obs').value='';
+  document.querySelectorAll('.check-box').forEach(b=>b.classList.remove('ok'));qtd=1;
+  document.getElementById('qn').textContent=1;
+  const ok=document.getElementById('c-ok');ok.className='alert-ok';ok.textContent='✓ Coleta registrada às '+hora()+'. Boa viagem!';ok.style.display='block';
+  refreshHome();setTimeout(()=>{ok.style.display='none';go('s-home');},2000);
+}
+
+// ===== ENTREGA =====
+function pendentes(){return coletas.filter(c=>c.u===me&&c.entregas.some(e=>e.status==='pendente'));}
+function abrirEntrega(){
+  const resumo=document.getElementById('en-resumo'),cont=document.getElementById('en-blocos'),pend=pendentes();
+  if(!pend.length){resumo.innerHTML='<div class="alert-info">Nenhuma entrega pendente. Registre uma coleta para confirmar as entregas aqui.</div>';cont.innerHTML='';return;}
+  resumo.innerHTML='';let html='';
+  pend.forEach(col=>{
+    const feitas=col.entregas.filter(e=>e.status!=='pendente').length;
+    html+=`<div class="card" style="padding:10px 14px;background:#f9f9f7"><div style="font-size:13px;color:var(--ts)">${col.data}</div><div style="font-size:14px;font-weight:500;color:var(--tp)">${feitas} de ${col.qtd} entregas finalizadas</div></div>`;
+    col.entregas.forEach(e=>{
+      if(e.status==='entregue'){
+        html+=`<div class="ent-block entregue"><div class="ent-head"><div class="enum done"><i class="ti ti-check" style="font-size:15px"></i></div><div class="ent-cidade">${e.cidade}</div><span class="badge badge-ok">Entregue ${e.hora}</span></div><div style="font-size:13px;color:var(--ts)">NF ${e.nf} · Recebeu: ${e.recebedor}</div></div>`;
+      } else if(e.status==='devolvido'){
+        html+=`<div class="ent-block devolvido"><div class="ent-head"><div class="enum dev"><i class="ti ti-arrow-back-up" style="font-size:15px"></i></div><div class="ent-cidade">${e.cidade}</div><span class="badge badge-dev">Devolvido ${e.hora}</span></div><div style="font-size:13px;color:var(--ts)">NF ${e.nf} · Motivo: ${e.motivo||'não informado'}</div></div>`;
+      } else {
+        html+=`<div class="ent-block" id="blk-${col.fbKey}-${e.n}">
+          <div class="ent-head"><div class="enum pend">${e.n}</div><div class="ent-cidade">${e.cidade}</div><span class="badge badge-pend">Pendente</span></div>
+          <div style="font-size:13px;color:var(--ts);margin-bottom:10px">Nota fiscal: ${e.nf}</div>
+          <span class="mini-label">O que aconteceu?</span>
+          <select class="mini-in" id="st-${col.fbKey}-${e.n}" onchange="mudarStatus('${col.fbKey}','${e.n}')"><option value="entregue">Entregou ao cliente</option><option value="devolvido">Cliente devolveu</option></select>
+          <div id="campos-ent-${col.fbKey}-${e.n}">
+            <span class="mini-label">Quem recebeu?</span><input class="mini-in" id="rec-${col.fbKey}-${e.n}" placeholder="Nome de quem assinou">
+            <span class="mini-label">Assinou o canhoto?</span>
+            <select class="mini-in" id="can-${col.fbKey}-${e.n}"><option value="sim">Sim, assinou</option><option value="digital">Assinatura no celular</option><option value="nao">Não quis assinar</option></select>
+          </div>
+          <div id="campos-dev-${col.fbKey}-${e.n}" style="display:none">
+            <span class="mini-label">Por que devolveu?</span><input class="mini-in" id="mot-${col.fbKey}-${e.n}" placeholder="Ex: cliente recusou, carga errada...">
+          </div>
+          <span class="mini-label" id="lbl-foto-${col.fbKey}-${e.n}">Foto do canhoto desta entrega</span>
+          <div class="photo-area" onclick="addEntFoto('${col.fbKey}','${e.n}','fr-${col.fbKey}-${e.n}')"><i class="ti ti-file-check"></i><span>Tira a foto</span></div>
+          <div class="photo-row" id="fr-${col.fbKey}-${e.n}"></div>
+          <button class="btn btn-verde" onclick="confirmarEntrega('${col.fbKey}','${e.n}')">Finalizar entrega ${e.n}</button>
+        </div>`;
+      }
+    });
+  });
+  cont.innerHTML=html;
+}
+function mudarStatus(colKey,n){
+  const st=document.getElementById('st-'+colKey+'-'+n).value;
+  document.getElementById('campos-ent-'+colKey+'-'+n).style.display=st==='devolvido'?'none':'block';
+  document.getElementById('campos-dev-'+colKey+'-'+n).style.display=st==='devolvido'?'block':'none';
+  document.getElementById('lbl-foto-'+colKey+'-'+n).textContent=st==='devolvido'?'Foto do comprovante de devolução':'Foto do canhoto desta entrega';
+}
+const fotosEnt={};
+function addEntFoto(colKey,n,rowId){
+  const input=document.createElement('input');input.type='file';input.accept='image/*';input.capture='environment';
+  input.onchange=ev=>{const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{fotosEnt[colKey+'-'+n]=e.target.result;const row=document.getElementById(rowId);row.innerHTML='';const img=document.createElement('img');img.src=e.target.result;img.className='photo-thumb';row.appendChild(img);};r.readAsDataURL(f);};
+  input.click();
+}
+async function confirmarEntrega(colKey,n){
+  const st=document.getElementById('st-'+colKey+'-'+n).value;
+  if(!fotosEnt[colKey+'-'+n]){alert('Tira a foto desta entrega.');return;}
+  const col=coletas.find(c=>c.fbKey==colKey);
+  const entIdx=col.entregas.findIndex(e=>e.n==n);
+  const ent={...col.entregas[entIdx]};
+  if(st==='entregue'){
+    const rec=document.getElementById('rec-'+colKey+'-'+n).value.trim();
+    if(!rec){alert('Coloca o nome de quem recebeu esta entrega.');return;}
+    ent.status='entregue';ent.recebedor=rec;ent.canhoto=document.getElementById('can-'+colKey+'-'+n).value;
+  } else {
+    const mot=document.getElementById('mot-'+colKey+'-'+n).value.trim();
+    if(!mot){alert('Escreve o motivo da devolução.');return;}
+    ent.status='devolvido';ent.motivo=mot;
+  }
+  ent.hora=hora();ent.foto=fotosEnt[colKey+'-'+n];
+  const novasEnt=[...col.entregas];novasEnt[entIdx]=ent;
+  try{
+    await update(ref(db,'coletas/'+colKey),{entregas:novasEnt});
+  }catch(e){alert('Erro ao salvar entrega.');}
+  abrirEntrega();
+  const ok=document.getElementById('en-ok');ok.className='alert-ok';ok.textContent='✓ Entrega '+n+' finalizada às '+hora();ok.style.display='block';
+  setTimeout(()=>{ok.style.display='none';},2500);
+}
+
+// ===== FOTO ABAST =====
+function addFoto(rowId){
+  const input=document.createElement('input');input.type='file';input.accept='image/*';input.capture='environment';
+  input.onchange=ev=>{const f=ev.target.files[0];if(!f)return;const r=new FileReader();r.onload=e=>{const row=document.getElementById(rowId);const img=document.createElement('img');img.src=e.target.result;img.className='photo-thumb';row.appendChild(img);};r.readAsDataURL(f);};
+  input.click();
+}
+function calcAb(){const l=parseFloat(document.getElementById('ab-l').value)||0,p=parseFloat(document.getElementById('ab-p').value)||0;document.getElementById('ab-tot').textContent=l&&p?'R$ '+(l*p).toFixed(2).replace('.',','):'R$ —';}
+async function salvarAbast(){
+  const l=document.getElementById('ab-l').value;if(!l){alert('Coloca quantos litros você abasteceu.');return;}
+  const reg={u:me,data:hoje(),hora:hora(),litros:l,preco:document.getElementById('ab-p').value,posto:document.getElementById('ab-posto').value};
+  try{await push(ref(db,'abasts'),reg);}catch(e){alert('Erro ao salvar.');}
+  document.getElementById('ab-l').value='';document.getElementById('ab-p').value='';document.getElementById('ab-posto').value='';document.getElementById('ab-tot').textContent='R$ —';
+  const ok=document.getElementById('ab-ok');ok.className='alert-ok';ok.textContent='✓ Abastecimento salvo!';ok.style.display='block';
+  setTimeout(()=>{ok.style.display='none';go('s-home');},2000);
+}
+
+// ===== TODAS AS COLETAS =====
+function renderTodasColetas(){
+  const mine=coletas.filter(c=>c.u===me);
+  const cont=document.getElementById('tc-lista');
+  document.getElementById('tc-sub').textContent=mine.length+' viagem(ns) registrada(s)';
+  if(!mine.length){cont.innerHTML='<div style="text-align:center;padding:40px 20px;color:var(--ts);font-size:14px">Nenhuma coleta registrada ainda.<br>Use o botão + para registrar sua primeira saída.</div>';return;}
+  cont.innerHTML=mine.map(c=>{
+    const tot=c.entregas.length,ent=c.entregas.filter(e=>e.status==='entregue').length,dev=c.entregas.filter(e=>e.status==='devolvido').length,pend=c.entregas.filter(e=>e.status==='pendente').length;
+    let statusLabel,statusColor,statusBg;
+    if(pend>0&&ent===0&&dev===0){statusLabel='🚛 Em andamento';statusColor='#854F0B';statusBg='#FAEEDA';}
+    else if(pend>0){statusLabel='📍 Entrega parcial';statusColor='#185FA5';statusBg='#E6F1FB';}
+    else if(dev>0&&ent===0){statusLabel='↩️ Devolvida';statusColor='#A32D2D';statusBg='#FCEBEB';}
+    else{statusLabel='✅ Finalizada';statusColor='#3B6D11';statusBg='#EAF3DE';}
+    const prog=tot>0?Math.round((ent+dev)/tot*100):0;
+    return `<div class="card" style="margin-bottom:12px;cursor:pointer" onclick="verColeta('${c.fbKey}')">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-size:14px;font-weight:600;color:var(--tp)">${c.data} · ${c.hora}</div>
+        <span style="font-size:12px;font-weight:600;padding:4px 10px;border-radius:20px;background:${statusBg};color:${statusColor}">${statusLabel}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:13px;color:var(--ts);margin-bottom:10px">
+        <span>${tot} entrega(s) · R$ ${c.valor}</span>
+        <span>${ent} ✓${dev>0?' · '+dev+' ↩':''}${pend>0?' · '+pend+' pend.':''}</span>
+      </div>
+      <div style="background:#eee;border-radius:6px;height:6px;overflow:hidden">
+        <div style="width:${prog}%;height:100%;background:${prog===100&&dev===0?'#1D9E75':prog===100?'#BA7517':'#185FA5'};border-radius:6px"></div>
+      </div>
+      <div style="font-size:11px;color:var(--tt);margin-top:5px">${prog}% concluído</div>
+    </div>`;
+  }).join('');
+}
+function verColeta(fbKey){
+  const c=coletas.find(x=>x.fbKey==fbKey);if(!c)return;
+  document.getElementById('cd-sub').textContent=c.data+' · '+c.hora;
+  let html=`<div class="card"><div style="font-size:13px;color:var(--ts);margin-bottom:2px">Saída</div><div style="font-size:15px;font-weight:500;color:var(--tp);margin-bottom:10px">Votorantim — Fábrica Fercal</div><div style="display:flex;justify-content:space-between;font-size:14px"><span style="color:var(--ts)">Valor do frete</span><span style="font-weight:500">R$ ${c.valor}</span></div><div style="display:flex;justify-content:space-between;font-size:14px;margin-top:6px"><span style="color:var(--ts)">Total de entregas</span><span style="font-weight:500">${c.qtd}</span></div>${c.obs?`<div style="font-size:13px;color:var(--ts);margin-top:10px;padding-top:10px;border-top:0.5px solid var(--bt)">Obs: ${c.obs}</div>`:''}</div><div style="font-size:14px;font-weight:500;color:var(--tp);margin:6px 0 10px">Entregas</div>`;
+  c.entregas.forEach(e=>{
+    let cls='',badge,info;
+    if(e.status==='entregue'){cls='entregue';badge=`<span class="badge badge-ok">Entregue ${e.hora}</span>`;info=`NF ${e.nf} · Recebeu: ${e.recebedor}`;}
+    else if(e.status==='devolvido'){cls='devolvido';badge=`<span class="badge badge-dev">Devolvido ${e.hora}</span>`;info=`NF ${e.nf} · Motivo: ${e.motivo||'não informado'}`;}
+    else{badge='<span class="badge badge-pend">Pendente</span>';info=`NF ${e.nf} · Ainda não finalizada`;}
+    html+=`<div class="ent-block ${cls}"><div class="ent-head"><div class="enum ${e.status==='entregue'?'done':e.status==='devolvido'?'dev':'pend'}">${e.n}</div><div class="ent-cidade">${e.cidade}</div>${badge}</div><div style="font-size:13px;color:var(--ts)">${info}</div>${e.foto?`<img src="${e.foto}" class="photo-thumb" style="margin-top:10px">`:''}</div>`;
+  });
+  document.getElementById('cd-conteudo').innerHTML=html;go('s-coleta-det');
+}
+
+// ===== SALDO =====
+function diasPremiados(u){
+  const dias={};coletas.filter(c=>c.u===u).forEach(c=>{dias[c.data]=(dias[c.data]||0)+1;});
+  return Object.entries(dias).filter(([d,n])=>n>=2).map(([d])=>d);
+}
+function refreshSaldo(){
+  const meus=coletas.filter(c=>c.u===me),dias={};
+  meus.forEach(c=>{dias[c.data]=(dias[c.data]||0)+1;});
+  const premios=Object.values(dias).filter(v=>v>=2).length;
+  document.getElementById('sl-col').textContent=meus.length;
+  document.getElementById('sl-pr').textContent=premios;
+  document.getElementById('sl-tot').textContent='R$ '+(premios*PREMIO).toLocaleString('pt-BR',{minimumFractionDigits:2});
+  const cont=document.getElementById('sl-dias'),entradas=Object.entries(dias).sort((a,b)=>b[0].localeCompare(a[0]));
+  if(!entradas.length){cont.innerHTML='<div style="color:var(--ts);font-size:14px;text-align:center;padding:20px">Nenhuma coleta ainda.</div>';return;}
+  cont.innerHTML=entradas.map(([d,n])=>{
+    const chave=me+'|'+d;
+    const pago=premiosPagos[chave];
+    let b;
+    if(n<2)b='<span class="badge badge-pend">Não atingiu</span>';
+    else if(pago)b='<span class="badge badge-pago"><i class="ti ti-check" style="font-size:12px"></i> Pago</span>';
+    else b='<span class="badge badge-ok">R$ 80 a receber</span>';
+    return `<div class="dia-row"><div><div style="font-size:14px;font-weight:500;color:var(--tp)">${d}</div><div style="font-size:12px;color:var(--ts)">${n} coleta(s)</div></div>${b}</div>`;
+  }).join('');
+}
+
+// ===== ADM =====
+function statsMot(u){
+  const cs=coletas.filter(c=>c.u===u);
+  const mesCs=cs.filter(c=>chaveMes(c.data)===mesAtual());
+  let entregues=0,devolvidas=0,pendentes=0;
+  cs.forEach(c=>c.entregas.forEach(e=>{if(e.status==='entregue')entregues++;else if(e.status==='devolvido')devolvidas++;else pendentes++;}));
+  const premioDias=diasPremiados(u);
+  const premiosPend=premioDias.filter(d=>!premiosPagos[u+'|'+d]);
+  const pts=cs.length*10+entregues*5+premioDias.length*20-devolvidas*3;
+  return{coletas:cs.length,coletasMes:mesCs.length,entregues,devolvidas,pendentes,premioDias,premiosPend,
+    aReceber:premiosPend.length*PREMIO,pago:(premioDias.length-premiosPend.length)*PREMIO,
+    pts:Math.max(0,pts),nivel:Math.floor(Math.max(0,pts)/100)+1,xp:Math.max(0,pts)%100};
+}
+function badgesMot(s){
+  const b=[];
+  if(s.coletas>=10)b.push('🏁 Maratonista');
+  if(s.premioDias.length>=4)b.push('🔥 Sequência de Ouro');
+  if(s.devolvidas===0&&s.entregues>0)b.push('✅ Zero Devolução');
+  if(s.entregues>=20)b.push('⭐ Top Entregador');
+  return b;
+}
+function renderAdm(){
+  const stats={};MOTORISTAS.forEach(u=>stats[u]=statsMot(u));
+  const totColetas=MOTORISTAS.reduce((a,u)=>a+stats[u].coletas,0);
+  const totEnt=MOTORISTAS.reduce((a,u)=>a+stats[u].entregues,0);
+  const totDev=MOTORISTAS.reduce((a,u)=>a+stats[u].devolvidas,0);
+  const totReceber=MOTORISTAS.reduce((a,u)=>a+stats[u].aReceber,0);
+  const totPago=MOTORISTAS.reduce((a,u)=>a+stats[u].pago,0);
+  document.getElementById('kpis').innerHTML=[
+    {i:'ti-package',c:'#1D9E75',bg:'#EAF3DE',n:totColetas,l:'Coletas registradas'},
+    {i:'ti-checks',c:'#185FA5',bg:'#E6F1FB',n:totEnt,l:'Entregas concluídas'},
+    {i:'ti-arrow-back-up',c:'#A32D2D',bg:'#FCEBEB',n:totDev,l:'Devoluções'},
+    {i:'ti-cash',c:'#BA7517',bg:'#FAEEDA',n:'R$ '+totReceber,l:'Prêmios a pagar'},
+    {i:'ti-circle-check',c:'#185FA5',bg:'#E6F1FB',n:'R$ '+totPago,l:'Prêmios já pagos'}
+  ].map(k=>`<div class="kpi"><div class="kpi-ico" style="background:${k.bg};color:${k.c}"><i class="ti ${k.i}"></i></div><div class="kpi-n">${k.n}</div><div class="kpi-l">${k.l}</div></div>`).join('');
+  const ordenados=[...MOTORISTAS].sort((a,b)=>stats[b].pts-stats[a].pts);
+  document.getElementById('rank').innerHTML=ordenados.map((u,idx)=>{
+    const s=stats[u],U=USERS[u],lider=idx===0&&s.pts>0;
+    const bds=badgesMot(s);
+    return `<div class="rcard ${lider?'gold':''}">
+      ${lider?'<div class="rcard-crown">👑</div>':''}
+      <div class="rcard-top"><div class="ravatar">${U.n.slice(0,2).toUpperCase()}</div>
+        <div><div class="rname">${U.n}</div><div class="rplate">${U.p||''}</div>
+        <div class="rlevel"><i class="ti ti-star" style="font-size:12px"></i> Nível ${s.nivel}</div></div>
+      </div>
+      <div class="xp-bar"><div class="xp-fill" style="width:${s.xp}%"></div></div>
+      <div class="xp-txt">${s.xp}/100 XP para o próximo nível · ${s.pts} pontos</div>
+      <div class="rmetrics">
+        <div class="rmetric"><div class="rmetric-n">${s.coletas}</div><div class="rmetric-l">Coletas</div></div>
+        <div class="rmetric"><div class="rmetric-n">${s.entregues}</div><div class="rmetric-l">Entregas</div></div>
+        <div class="rmetric"><div class="rmetric-n">${s.devolvidas}</div><div class="rmetric-l">Devoluções</div></div>
+        <div class="rmetric"><div class="rmetric-n">${s.premioDias.length}</div><div class="rmetric-l">Prêmios</div></div>
+      </div>
+      <div class="badges">${bds.length?bds.map(b=>`<span class="bdg">${b}</span>`).join(''):'<span style="font-size:12px;color:var(--tt)">Sem conquistas ainda</span>'}</div>
+    </div>`;
+  }).join('');
+  let pagHtml='';
+  MOTORISTAS.forEach(u=>{
+    const s=stats[u],U=USERS[u];
+    const dias=s.premioDias.slice().sort((a,b)=>b.localeCompare(a));
+    pagHtml+=`<div class="pay-box"><div class="pay-head"><div style="font-size:15px;font-weight:600;color:var(--tp)">${U.n}</div>
+    <div class="pay-total">A pagar: <b>R$ ${s.aReceber}</b> · Pago: R$ ${s.pago}</div></div>`;
+    if(!dias.length){pagHtml+='<div style="font-size:13px;color:var(--tt);padding:6px 0">Nenhum prêmio gerado ainda.</div>';}
+    else dias.forEach(d=>{
+      const chave=(u+'|'+d).replace('|','|');
+      const pago=premiosPagos[u+'|'+d];
+      pagHtml+=`<div class="pay-row"><div><b>${d}</b> · prêmio do dia (2+ coletas) · R$ ${PREMIO}</div>${pago?'<span class="btn-pago"><i class="ti ti-check"></i> Pago</span>':`<button class="btn-pagar" onclick="pagarPremio('${u}','${d}')">Pagar R$ ${PREMIO}</button>`}</div>`;
+    });
+    pagHtml+='</div>';
+  });
+  document.getElementById('pagamentos').innerHTML=pagHtml;
+  const todas=coletas.slice(0,12);
+  if(!todas.length){
+    document.getElementById('adm-tabela').innerHTML='<div class="empty-d">Nenhuma coleta registrada ainda. Os dados aparecem aqui assim que os motoristas começarem a usar o app.</div>';
+  } else {
+    const rows=todas.map(c=>{
+      const ent=c.entregas.filter(e=>e.status==='entregue').length,dev=c.entregas.filter(e=>e.status==='devolvido').length,pend=c.entregas.filter(e=>e.status==='pendente').length;
+      const st=pend>0?`<span class="badge badge-pend">${pend} pend.</span>`:dev>0?`<span class="badge badge-dev">${ent} ent · ${dev} dev</span>`:'<span class="badge badge-ok">Concluída</span>';
+      return `<tr><td>${c.data} ${c.hora}</td><td>${USERS[c.u]?USERS[c.u].n:c.u}</td><td>${c.qtd}</td><td>${st}</td><td>R$ ${c.valor}</td></tr>`;
+    }).join('');
+    document.getElementById('adm-tabela').innerHTML=`<table class="tbl"><thead><tr><th>Data</th><th>Motorista</th><th>Entregas</th><th>Situação</th><th>Frete</th></tr></thead><tbody>${rows}</tbody></table>`;
+  }
+  desenharGraficos(stats);
+}
+async function pagarPremio(u,d){
+  if(!confirm('Confirmar pagamento de R$ '+PREMIO+' para '+USERS[u].n+' referente ao dia '+d+'?'))return;
+  const chave=u+'|'+d;
+  try{await set(ref(db,'premiosPagos/'+chave),true);}catch(e){alert('Erro ao registrar pagamento.');}
+}
+function desenharGraficos(stats){
+  Object.values(charts).forEach(c=>{try{c.destroy();}catch(e){}});
+  const nomes=MOTORISTAS.map(u=>USERS[u].n);
+  charts.coletas=new Chart(document.getElementById('ch-coletas'),{type:'bar',data:{labels:nomes,datasets:[{data:MOTORISTAS.map(u=>stats[u].coletas),backgroundColor:['#1D9E75','#46c79a'],borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}},maintainAspectRatio:false}});
+  charts.entregas=new Chart(document.getElementById('ch-entregas'),{type:'bar',data:{labels:nomes,datasets:[{data:MOTORISTAS.map(u=>stats[u].entregues),backgroundColor:['#185FA5','#5a9bd4'],borderRadius:6}]},options:{plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{precision:0}}},maintainAspectRatio:false}});
+  const te=MOTORISTAS.reduce((a,u)=>a+stats[u].entregues,0),td=MOTORISTAS.reduce((a,u)=>a+stats[u].devolvidas,0),tp=MOTORISTAS.reduce((a,u)=>a+stats[u].pendentes,0);
+  charts.situacao=new Chart(document.getElementById('ch-situacao'),{type:'doughnut',data:{labels:['Entregues','Devolvidas','Pendentes'],datasets:[{data:[te,td,tp],backgroundColor:['#1D9E75','#A32D2D','#BA7517']}]},options:{plugins:{legend:{position:'bottom',labels:{boxWidth:12,font:{size:11}}}},maintainAspectRatio:false}});
+}
+
+// ===== GLOBAL BINDINGS =====
+window.doLogin=doLogin;window.logout=logout;window.go=go;window.chgQ=chgQ;
+window.tog=tog;window.salvarColeta=salvarColeta;window.mudarStatus=mudarStatus;
+window.addEntFoto=addEntFoto;window.confirmarEntrega=confirmarEntrega;
+window.addFoto=addFoto;window.calcAb=calcAb;window.salvarAbast=salvarAbast;
+window.verColeta=verColeta;window.pagarPremio=pagarPremio;
+
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&document.getElementById('s-login').classList.contains('active'))doLogin();});
+
+// ===== INIT =====
+iniciarListeners();
+</script>
+</body>
+</html>
